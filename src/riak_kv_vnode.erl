@@ -538,8 +538,8 @@ init([Index]) ->
 
 handle_overload_command(?KV_PUT_REQ{}, Sender, Idx) ->
     riak_core_vnode:reply(Sender, {fail, Idx, overload});
-handle_overload_command(?KV_GET_REQ{req_id=ReqID}, Sender, Idx) ->
-    riak_core_vnode:reply(Sender, {r, {error, overload}, Idx, ReqID});
+%%handle_overload_command(?KV_GET_REQ{req_id=ReqID}, Sender, Idx) ->
+%%    riak_core_vnode:reply(Sender, {r, {error, overload}, Idx, ReqID});
 handle_overload_command(?KV_VNODE_STATUS_REQ{}, Sender, Idx) ->
     riak_core_vnode:reply(Sender, {vnode_status, Idx, [{error, overload}]});
 handle_overload_command(?KV_W1C_PUT_REQ{type=Type}, Sender, _Idx) ->
@@ -575,6 +575,7 @@ handle_command(?KV_PUT_REQ{bkey=BKey,
     {noreply, UpdState};
 
 handle_command(?KV_GET_REQ{bkey=BKey,req_id=ReqId},Sender,State) ->
+  error_logger:info_msg("Sender ~p",[Sender]),
     do_get(Sender, BKey, ReqId, State);
 handle_command(#riak_kv_listkeys_req_v2{bucket=Input, req_id=ReqId, caller=Caller}, _Sender,
                State=#state{async_folding=AsyncFolding,
@@ -1819,6 +1820,7 @@ do_get_binary(Bucket, Key, Mod, ModState) ->
         true ->
             Mod:get_object(Bucket, Key, true, ModState);
         false ->
+          error_logger:info_msg(" helper Mod ~p ",[Mod]),
             Mod:get(Bucket, Key, ModState)
     end.
 
@@ -2969,6 +2971,7 @@ bitcask_badcrc_test() ->
 
 
 new_result_listener(Type) ->
+  error_logger:info_msg("helper new_result_listener "),
     case Type of
         buckets ->
             ResultFun = fun() -> result_listener_buckets([]) end;
@@ -2978,6 +2981,7 @@ new_result_listener(Type) ->
     spawn(ResultFun).
 
 result_listener_buckets(Acc) ->
+    error_logger:info_msg("helper result_listener_keys  result_listener_buckets "),
     receive
         {'$gen_event', {_, done}} ->
             result_listener_done(Acc);
@@ -2989,6 +2993,7 @@ result_listener_buckets(Acc) ->
     end.
 
 result_listener_keys(Acc) ->
+  error_logger:info_msg("helper  result_listener_keys "),
     receive
         {'$gen_event', {_, done}} ->
             result_listener_done(Acc);
@@ -3002,12 +3007,14 @@ result_listener_keys(Acc) ->
     end.
 
 result_listener_done(Result) ->
+  error_logger:info_msg("helper result_listener_done "),
     receive
         {get_results, Pid} ->
             Pid ! {listener_results, Result}
     end.
 
 results_from_listener(Listener) ->
+  error_logger:info_msg("helper results_from_listener  "),
     Listener ! {get_results, self()},
     receive
         {listener_results, Result} ->
@@ -3017,6 +3024,7 @@ results_from_listener(Listener) ->
     end.
 
 flush_msgs() ->
+  error_logger:info_msg("helper flush_msgs "),
     receive
         _Msg ->
             flush_msgs()

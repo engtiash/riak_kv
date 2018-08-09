@@ -49,6 +49,10 @@ init([]) ->
                {riak_core_vnode_master, start_link,
                 [riak_kv_vnode, riak_kv_legacy_vnode, riak_kv]},
                permanent, 5000, worker, [riak_core_vnode_master]},
+  GetHelper = {riak_kv_get_helper_master,
+    {riak_core_vnode_master, start_link,
+      [riak_kv_get_helper,riak_kv_legacy_vnode, riak_kv]},
+    permanent, 5000, worker, [riak_core_vnode_master]},
     MapJSPool = {?JSPOOL_MAP,
                  {riak_kv_js_manager, start_link,
                   [?JSPOOL_MAP, read_js_pool_size(map_js_vm_count, "map")]},
@@ -67,6 +71,9 @@ init([]) ->
     JSSup = {riak_kv_js_sup,
              {riak_kv_js_sup, start_link, []},
              permanent, infinity, supervisor, [riak_kv_js_sup]},
+%%    GetHelper= {riak_kv_get_helper_sup,
+%%      {riak_kv_get_helper_sup, start_link, []},
+%%      permanent, infinity, supervisor, [riak_kv_get_helper_sup]},
     FastPutSup = {riak_kv_w1c_sup,
                  {riak_kv_w1c_sup, start_link, []},
                  permanent, infinity, supervisor, [riak_kv_w1c_sup]},
@@ -88,6 +95,9 @@ init([]) ->
     EntropyManager = {riak_kv_entropy_manager,
                       {riak_kv_entropy_manager, start_link, []},
                       permanent, 30000, worker, [riak_kv_entropy_manager]},
+%%    GetHelper= {riak_kv_get_helper,
+%%                {riak_kv_get_helper, start_link, []},
+%%                 permanent, 30000, worker, [riak_kv_get_helper]},
 
     EnsemblesKV =  {riak_kv_ensembles,
                     {riak_kv_ensembles, start_link, []},
@@ -95,11 +105,14 @@ init([]) ->
 
     % Figure out which processes we should run...
     HasStorageBackend = (app_helper:get_env(riak_kv, storage_backend) /= undefined),
+   %% this  will  return  bitcask_backend
 
     % Build the process list...
     Processes = lists:flatten([
         EntropyManager,
         ?IF(HasStorageBackend, VMaster, []),
+%%      ?IF(HasStorageBackend,GetHelper, []),
+        GetHelper,
         FastPutSup,
         DeleteSup,
         SinkFsmSup,
@@ -108,6 +121,7 @@ init([]) ->
         IndexFsmSup,
         [EnsemblesKV || riak_core_sup:ensembles_enabled()],
         JSSup,
+%%        GetHelper,
         MapJSPool,
         ReduceJSPool,
         HookJSPool,

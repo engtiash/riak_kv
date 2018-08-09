@@ -303,7 +303,8 @@ execute(timeout, StateData0=#state{timeout=Timeout,req_id=ReqId,
         _ ->
             ok
     end,
-    riak_kv_vnode:get(Preflist, BKey, ReqId),
+      riak_kv_get_helper:get(Preflist, BKey, ReqId),
+%%    riak_kv_vnode:get(Preflist, BKey, ReqId),
     StateData = StateData0#state{tref=TRef},
     new_state(waiting_vnode_r, StateData).
 
