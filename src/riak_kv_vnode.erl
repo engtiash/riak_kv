@@ -575,7 +575,7 @@ handle_command(?KV_PUT_REQ{bkey=BKey,
     {noreply, UpdState};
 
 handle_command(?KV_GET_REQ{bkey=BKey,req_id=ReqId},Sender,State) ->
-  error_logger:info_msg("Sender ~p",[Sender]),
+  error_logger:info_msg("handle_command normal get"),
     do_get(Sender, BKey, ReqId, State);
 handle_command(#riak_kv_listkeys_req_v2{bucket=Input, req_id=ReqId, caller=Caller}, _Sender,
                State=#state{async_folding=AsyncFolding,

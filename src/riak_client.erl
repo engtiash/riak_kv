@@ -146,6 +146,7 @@ get(Bucket, Key, Options, {?MODULE, [Node, _ClientId]}=THIS) when is_list(Option
         true ->
             consistent_get(Bucket, Key, Options, THIS);
         false ->
+            error_logger:info_msg("OP option ~p ",[Options]),
             normal_get(Bucket, Key, Options, THIS);
         {error,_}=Err ->
             Err
